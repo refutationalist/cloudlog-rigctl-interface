@@ -11,6 +11,11 @@ class rigctldAPI
 	private $host; 
 	private $port;
 	private $socket = false; 
+
+	// all I have available are Yaesu radios and the both do power
+	// the same way.  Will need help to support other methods
+	private $w_mult = 100;
+
 	function __construct($host = "127.0.0.1", $port = 4532)
 	{
 		$this->host = $host; 
@@ -67,6 +72,30 @@ class rigctldAPI
 			"mode" => $data[1],
 			"passband" => $data[2]
 		];
+	}
+
+	public function getAll()
+	{
+		$data = $this->runCommand("fm\get_level RFPOWER", 4); 
+		if ($data === false)
+			return false; 
+
+		$data = explode("\n", $data); 
+
+		return [
+			"frequency" => $data[0],
+			"mode" => $data[1],
+			"passband" => $data[2],
+			"power" => $data[3] * $this->w_mult
+		];
+	}
+	
+
+	public function getPower()
+	{
+		$thing = trim($this->runCommand("\get_level RFPOWER"));
+		return $thing * $this->w_mult;
+
 	}
 
 
